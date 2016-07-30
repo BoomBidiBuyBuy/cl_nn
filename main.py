@@ -16,7 +16,7 @@ np.random.seed(0123)  # for reproducibility
 subset = None
 
 #Whether to save model parameters
-save = False
+save = True
 model_name_path = 'params/crepe_model.json'
 model_weights_path = 'params/crepe_model_weights.h5'
 
@@ -31,7 +31,7 @@ dense_outputs = 1024
 #Conv layer kernel size
 filter_kernels = [7, 7, 3, 3, 3, 3]
 #Number of units in the final output layer. Number of classes.
-cat_output = 4
+cat_output = 2
 
 #Compile/fit params
 batch_size = 80
@@ -41,7 +41,8 @@ print('Loading data...')
 #Expect x to be a list of sentences. Y to be a one-hot encoding of the
 #categories.
 start = datetime.datetime.now()
-(xt, yt), (x_test, y_test) = data_helpers.load_ag_data()
+(xt, yt), (x_test, y_test) = data_helpers.load_review_data_categorical()
+#(xt, yt), (x_test, y_test) = data_helpers.load_ag_data()
 print('Loading takes: ', datetime.datetime.now() - start)
 
 print('Creating vocab...')
@@ -92,9 +93,7 @@ for e in xrange(nb_epoch):
     print("Batches len: ", len(xi) / batch_size)
     for x_train, y_train in batches:
 
-        start = datetime.datetime.now()
         f = model.train_on_batch(x_train, y_train)
-        #print('Train on one batch: ', datetime.datetime.now() - start, " (", step, ")")
 
         loss += f[0]
         loss_avg = loss / step
@@ -110,9 +109,8 @@ for e in xrange(nb_epoch):
     test_step = 1
 
     for x_test_batch, y_test_batch in test_batches:
-        start = datetime.datetime.now()
         f_ev = model.test_on_batch(x_test_batch, y_test_batch)
-        #print('Test on one batch: ', datetime.datetime.now() - start)
+
 
         test_loss += f_ev[0]
         test_loss_avg = loss / step

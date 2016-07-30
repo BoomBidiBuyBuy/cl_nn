@@ -2,47 +2,65 @@
 
 import codecs
 
-def remove_brackets(words, open, close, pos = 0):
+def remove_brackets(words, open, close):
+    first = -1
+    last = -1
+    count = 0
+
     open_pos = words.find(open)
+    close_pos = -1
+    last_open = -1
 
-    if open_pos != -1:
-        next_pos = words.find(open, open_pos + 1)
+    while open_pos != -1:
+        if first == -1:
+            first = open_pos
 
-        if next_pos != -1:
-            return remove_brackets(words, open, close, next_pos + 1)
+        last_open = open_pos
+        open_pos = words.find(open, last_open + 1)
+        close_pos = words.find(close, last_open + 1)
 
+        if close_pos < open_pos:
+            last_open = close_pos
+            break
 
-    return -1, -1
+        count += 1
+
+    if last_open != -1:
+        close_pos = last_open
+
+    for _ in xrange(count):
+        close_pos = words.find(close, close_pos + 1)
+
+    last = close_pos
+
+    if first != -1 and last != -1:
+        return True, words[:first - 1] + words[last + 1:]
+
+    return False, words
 
 def parse_words(sentence):
     # remove examples type 1
     words = sentence.split("||")[0].lower()
 
     # remove references
+    words = words.replace("\n", " ")
     words = words.replace(u"см.", "")
     words = words.replace(u"ср.", "")
 
-    remove_brackets(words, "(", ")")
-    remove_brackets(words, "[", "]")
-    remove_brackets(words, "<", ">")
+    while True:
+        result, words = remove_brackets(words, "(", ")")
+        if not result:
+            break
 
-    while words.find('[') != -1:
-        if words.find(']') != -1:
-            words = words[:words.find('[') - 1] + words[words.find(']') + 1:]
-        else:
-            words = ""
+    while True:
+        result, words = remove_brackets(words, "[", "]")
+        if not result:
+            break
 
-    while words.find('(') != -1:
-        if words.find(')') != -1:
-            words = words[:words.find('(') - 1] + words[words.find(')') + 1:]
-        else:
-            words = ""
-
-    while words.find('<') != -1:
-        if words.find('>') != -1:
-            words = words[:words.find('<') - 1] + words[words.find('>') + 1:]
-        else:
-            words = ""
+    while True:
+        result, words = remove_brackets(words, "<", ">")
+        if not result:
+            break
 
     # remove examples type 2
     words = words.split(".")[0]
@@ -50,11 +68,8 @@ def parse_words(sentence):
 
     return set(word.strip() for word in words.split(",") if len(word.strip()) > 0)
 
+out = codecs.open("result.out", "w", "utf-8", buffering=0)
 
-remove_brackets("<<av> a>", "<", ">")
-
-#out = codecs.open("result.out", "w", "utf-8", buffering=0)
-"""
 for line in codecs.open("abr1w.txt", "r", "utf-8"):
     parts = line.split("#")
     first = parts[0].lower()
@@ -66,8 +81,8 @@ for line in codecs.open("abr1w.txt", "r", "utf-8"):
 
         for v in second:
             out_line += v + ","
-"""
-        #out.write(first + "#" + out_line[:-1])
-        #out.flush()
 
-#out.close()
+        out.write(first + "#" + out_line[:-1] + "\n")
+        out.flush()
+
+out.close()

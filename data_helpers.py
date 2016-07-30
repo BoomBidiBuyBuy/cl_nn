@@ -3,13 +3,11 @@
 import string
 import numpy as np
 import pandas as pd
-import datetime
 from keras.utils.np_utils import to_categorical
-
 
 def load_ag_data():
     train = pd.read_csv('orig_data/ag_news_csv/train.csv', header=None)
-    print len(train)
+
     train = train.dropna()
 
     x_train = train[1] + train[2]
@@ -27,6 +25,42 @@ def load_ag_data():
 
     return (x_train, y_train), (x_test, y_test)
 
+def load_review_data_categorical():
+    # closure to make total categorical
+    def to_class(m):
+        def func(x):
+            return 0 if x < m else 1
+
+        return func
+
+    data = pd.read_json('data/restoclub.reviews.json')
+
+    data = data.dropna()
+
+    # preprocess data
+    text_data = data.text
+
+    total = data.ratings.apply(lambda x: x['total'])
+    mean = total.mean()
+    total_data = total.apply(to_class(mean))
+
+    # split data
+    split_index = int(len(data) * 0.8)
+
+    train_x = text_data[:split_index]
+    train_y = total_data[:split_index]
+
+    test_x = text_data[split_index:]
+    test_y = total_data[split_index:]
+
+    # change format
+    train_x = np.array(train_x)
+    train_y = to_categorical(np.array(train_y))
+
+    test_x = np.array(test_x)
+    test_y = to_categorical(np.array(test_y))
+
+    return (train_x, train_y), (test_x, test_y)
 
 def mini_batch_generator(x, y, vocab, vocab_size, vocab_check, maxlen, batch_size=128):
 
@@ -72,9 +106,16 @@ def shuffle_matrix(x, y):
 
     return xi, yi
 
+# return english alphabet
+def eng_alphabet():
+    return list(string.ascii_lowercase)
+
+# return russian alphabet
+def rus_alphabet():
+    return list(u"абвгдеёжзийклмнопрстуфчцчшщъыьэюя")
+
 def create_vocab_set():
-    alphabet = (list(string.ascii_lowercase) + list(string.digits) +
-                list(string.punctuation) + ['\n'])
+    alphabet = (rus_alphabet() + list(string.digits) + list(string.punctuation) + ['\n'])
 
     vocab = {letter: inx for inx, letter in enumerate(alphabet)}
 

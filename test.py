@@ -24,6 +24,14 @@ alpha = get_alphabet()
 
 data = pd.read_json('restoclub.reviews.json')
 
+split_index = int(len(data) * 0.8)
+
+train_data = data[:split_index]
+test_data = data[split_index:]
+
+print len(train_data) + len(test_data) == len(data)
+
+"""
 text_data = data.text.apply(lambda x: x.lower().replace(' ', ''))
 
 
@@ -41,3 +49,4 @@ total = data.ratings.apply(lambda x: x['total'])
 mean = total.mean()
 
 class_total = total.apply(to_class(mean))
+"""
