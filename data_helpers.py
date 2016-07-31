@@ -33,7 +33,11 @@ def load_review_data_categorical():
 
         return func
 
-    data = pd.read_json('data/restoclub.reviews.json')
+    data = pd.read_json('data/restoclub.reviews.synonyms.json')
+
+    # shuffle datax
+    data = data.iloc[np.random.permutation(len(data))]
+    data = data.reset_index()
 
     data = data.dropna()
 
@@ -121,9 +125,3 @@ def create_vocab_set():
 
     return vocab, len(alphabet), set(alphabet)
 
-#(xt, yt), (x_test, y_test) = load_ag_data()
-#vocab, vocab_size, check = create_vocab_set()
-
-#test_data = encode_data2(x_test, 1014, vocab, vocab_size, check)
-
-#print test_data[0][:10]
